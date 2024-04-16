@@ -1,11 +1,18 @@
 package net.myriantics.chat_queue;
 
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
+import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
+
+import java.time.Instant;
 
 public class MessageSentChecker implements ClientReceiveMessageEvents.Game, ClientTickEvents.StartTick{
 
@@ -16,12 +23,12 @@ public class MessageSentChecker implements ClientReceiveMessageEvents.Game, Clie
     private boolean MessageFailConfirmed = false;
     private final Text MessageSendFailKey = Text.literal("second");
 
-    public MessageSentChecker(String message) {
+    public MessageSentChecker(String message, long messageSentTime) {
         ClientReceiveMessageEvents.GAME.register(this);
         ClientTickEvents.START_CLIENT_TICK.register(this);
 
-        this.StoredMessage = message;
-        resetSentTime();
+        StoredMessage = message;
+        MessageSentTime = messageSentTime;
     }
 
     @Override
