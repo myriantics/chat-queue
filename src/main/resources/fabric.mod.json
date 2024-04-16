@@ -1,11 +1,11 @@
 {
 	"schemaVersion": 1,
-	"id": "tutorialmod",
+	"id": "chat_queue",
 	"version": "${version}",
-	"name": "tutorialmod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "chat-queue",
+	"description": "Now you don't have to retype messages when they get blocked by lack of a rank",
 	"authors": [
-		"ThatSmartGuy21"
+		"Myriantics"
 	],
 	"contact": {
 		"homepage": "https://reddit.com/r/feedthememes",
@@ -15,18 +15,12 @@
 	"icon": "assets/tutorialmod/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-          "net.smartguy.tutorialmod.TutorialMod"
-		],
 		"client": [
-			"net.smartguy.tutorialmod.TutorialModClient"
-		],
-		"fabric-datagen": [
-			"net.smartguy.tutorialmod.TutorialModDataGenerator"
+			"net.myriantics.chat_queue.ChatQueue"
 		]
 	},
 	"mixins": [
-		"tutorialmod.mixins.json"
+		"chat-queue.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.6",
