@@ -1,14 +1,20 @@
 package net.myriantics.chat_queue;
 
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.ArrayList;
 
-public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMessageEvents.Chat, ClientReceiveMessageEvents.Game{
+public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMessageEvents.Chat, ClientReceiveMessageEvents.Game, ClientReceiveMessageEvents.Chat{
 
     private static boolean SkipNextSentMessage = false;
 
@@ -17,21 +23,9 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
     private static ArrayList<String> QueuedMessages = new ArrayList<>();
     private static final Text MessageSendFailKey = Text.literal("second");
     private static long OldestQueuedMessageSentTimeMillis;
-    private static int MessageDelayMillis = 3000;
-    private static int UnsentMessageDecayTimerMillis = 20000;
+    private static final int MessageDelayMillis = 3000;
+    //private static final int UnsentMessageDecayTimerMillis = 20000;
 
-    /*
-    public ChatQueueCore() {
-        ClientSendMessageEvents.CHAT.register(this);
-        ClientReceiveMessageEvents.GAME.register(this);
-    }*/
-
-    @Override
-    public void onStartTick(MinecraftClient client) {
-        if(hasCoolDownExpired() && client.getNetworkHandler().getServerInfo() != null) {
-            sendNextQueuedMessage(client);
-        }
-    }
 
     @Override
     public void onReceiveGameMessage(Text message, boolean overlay) {
@@ -43,8 +37,15 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
     }
 
     @Override
+    public void onReceiveChatMessage(Text message, @Nullable SignedMessage signedMessage, @Nullable GameProfile sender, MessageType.Parameters params, Instant receptionTimestamp) {
+        if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
+            UnconfirmedMessages.remove(0);
+        }
+    }
+
+    @Override
     public void onSendChatMessage(String message) {
-        if(!SkipNextSentMessage) {
+        if(!SkipNextSentMessage && isModEnabledOnServer()) {
             if(UnconfirmedMessages.isEmpty() || QueuedMessages.isEmpty()) {
                 OldestQueuedMessageSentTimeMillis = System.currentTimeMillis();
             }
@@ -53,7 +54,7 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
         SkipNextSentMessage = false;
     }
 
-    private boolean sendNextQueuedMessage(MinecraftClient client) {
+    public static boolean sendNextQueuedMessage(MinecraftClient client) {
         if(client.player != null && !QueuedMessages.isEmpty()) {
             client.player.networkHandler.sendChatMessage(QueuedMessages.get(0));
             return true;
@@ -65,15 +66,31 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
         return (System.currentTimeMillis() - OldestQueuedMessageSentTimeMillis) >= MessageDelayMillis;
     }
 
-    private static void TransferLatestMessageToQueue() {
+    public static void TransferLatestMessageToQueue() {
         QueuedMessages.add(UnconfirmedMessages.remove(0));
     }
 
-    public ArrayList<String> getUnconfirmedMessages() {
+    public static ArrayList<String> getUnconfirmedMessages() {
         return UnconfirmedMessages;
     }
 
-    public ArrayList<String> getQueuedMessages() {
+    public static ArrayList<String> getQueuedMessages() {
         return QueuedMessages;
+    }
+
+    public static boolean isModEnabledOnServer() {
+        final ClientPlayNetworkHandler network = MinecraftClient.getInstance().getNetworkHandler();
+        if(network == null || network.getServerInfo() == null) return false;
+
+        final String address = network.getServerInfo().address;
+        return address.endsWith("hoplite.gg") || address.contains(".hoplite");
+    }
+
+    @Override
+    public void onStartTick(MinecraftClient client) {
+        if(hasCoolDownExpired() && client.getNetworkHandler() != null) {
+            sendNextQueuedMessage(client);
+            client.player.sendMessage(Text.literal(getUnconfirmedMessages().size() + " " + getQueuedMessages().size()));
+        }
     }
 }
