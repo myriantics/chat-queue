@@ -1,4 +1,4 @@
-package net.myriantics.chat_queue;
+/*package net.myriantics.chat_queue;
 
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -64,3 +64,4 @@ public class MessageSentChecker implements ClientReceiveMessageEvents.Game, Clie
         }
     }
 }
+*/

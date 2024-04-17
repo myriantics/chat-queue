@@ -16,6 +16,8 @@ public class ChatQueue implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ClientSendMessageEvents.CHAT.register(new ChatSentMessageRecorder());
+		ClientTickEvents.START_CLIENT_TICK.register(new ChatQueueCore());
+		ClientReceiveMessageEvents.GAME.register(new ChatQueueCore());
+		ClientSendMessageEvents.CHAT.register(new ChatQueueCore());
 	}
 }
