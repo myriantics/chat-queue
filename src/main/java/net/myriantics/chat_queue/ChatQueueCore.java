@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
@@ -29,29 +30,34 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
 
     @Override
     public void onReceiveGameMessage(Text message, boolean overlay) {
-        if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
+        if(!overlay /*add another check for message fail key here (reference chat filter mods)*/) {
+            sendDebugMessage("Recieved fail-confirm message!");
+        }
+        /*if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
             UnconfirmedMessages.remove(0);
         } else if (message.contains(MessageSendFailKey)){
             TransferLatestMessageToQueue();
-        }
+        }*/
     }
 
     @Override
     public void onReceiveChatMessage(Text message, @Nullable SignedMessage signedMessage, @Nullable GameProfile sender, MessageType.Parameters params, Instant receptionTimestamp) {
-        if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
+        sendDebugMessage("Recieved chat message!");
+        /*if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
             UnconfirmedMessages.remove(0);
-        }
+        }*/
     }
 
     @Override
     public void onSendChatMessage(String message) {
-        if(!SkipNextSentMessage && isModEnabledOnServer()) {
+        sendDebugMessage("Sent chat message!");
+        /*if(!SkipNextSentMessage && isModEnabledOnServer()) {
             if(UnconfirmedMessages.isEmpty() || QueuedMessages.isEmpty()) {
                 OldestQueuedMessageSentTimeMillis = System.currentTimeMillis();
             }
             UnconfirmedMessages.add(message);
         }
-        SkipNextSentMessage = false;
+        SkipNextSentMessage = false;*/
     }
 
     public static boolean sendNextQueuedMessage(MinecraftClient client) {
@@ -90,7 +96,10 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
     public void onStartTick(MinecraftClient client) {
         if(hasCoolDownExpired() && client.getNetworkHandler() != null) {
             sendNextQueuedMessage(client);
-            client.player.sendMessage(Text.literal(getUnconfirmedMessages().size() + " " + getQueuedMessages().size()));
         }
+    }
+
+    private static void sendDebugMessage(String message) {
+        MinecraftClient.getInstance().player.sendMessage(Text.literal(message));
     }
 }
