@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"client": [
-			"net.myriantics.chat_queue.ChatQueue"
+			"net.myriantics.chat_queue.ChatQueueClient"
 		]
 	},
 	"mixins": [

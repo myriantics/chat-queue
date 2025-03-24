@@ -1,89 +1,58 @@
 package net.myriantics.chat_queue;
 
-import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
-import net.minecraft.text.Text;
-import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMessageEvents.Chat, ClientReceiveMessageEvents.Game, ClientReceiveMessageEvents.Chat{
+public class ChatQueueCore {
 
-    private static boolean SkipNextSentMessage = false;
+    public static HashMap<String, ArrayList<String>> PREFIXED_QUEUES = new HashMap<>();
 
-    private static ArrayList<String> UnconfirmedMessages = new ArrayList<>();
+    public static String RAW_CHAT_MESSAGE_PREFIX = "";
 
-    private static ArrayList<String> QueuedMessages = new ArrayList<>();
-    private static final Text MessageSendFailKey = Text.literal("second");
-    private static long OldestQueuedMessageSentTimeMillis;
-    private static final int MessageDelayMillis = 3000;
-    //private static final int UnsentMessageDecayTimerMillis = 20000;
+    public static final String[] VALID_MESSAGE_PREFIXES = {
+            "shout",
+            "pc"
+    };
 
+    // time is stored in milliseconds
+    public static final Map<String, Long> QUEUE_DELAYS = Map.of(
+            RAW_CHAT_MESSAGE_PREFIX, 3000L,
+            VALID_MESSAGE_PREFIXES[0], 60000L,
+            VALID_MESSAGE_PREFIXES[1], 1000L
+    );
 
-    @Override
-    public void onReceiveGameMessage(Text message, boolean overlay) {
-        if(!overlay /*add another check for message fail key here (reference chat filter mods)*/) {
-            sendDebugMessage("Recieved fail-confirm message!");
+    public static HashMap<String, Long> QUEUE_LAST_SENT_TIMES = new HashMap<>();
+
+    public static void clearAllQueues() {
+        PREFIXED_QUEUES.clear();
+    }
+
+    public static void updateLastSentTime(String prefix) {
+        QUEUE_LAST_SENT_TIMES.put(prefix, System.currentTimeMillis());
+    }
+
+    public static void addEntryToBaseQueue(String message) {
+        addEntryToPrefixedQueue(RAW_CHAT_MESSAGE_PREFIX, message);
+    }
+
+    public static void addEntryToPrefixedQueue(String prefix, String message) {
+        ChatQueueClient.LOGGER.info("Added message to queue! " + message);
+        PREFIXED_QUEUES.get(prefix).add(message);
+    }
+
+    public static void sendNextQueuedMessage(String prefix, ClientPlayNetworkHandler handler) {
+        if (prefix.isEmpty()) {
+            handler.sendChatMessage(PREFIXED_QUEUES.get(prefix).remove(0));
+        } else {
+            handler.sendChatCommand(PREFIXED_QUEUES.get(prefix).remove(0));
         }
-        /*if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
-            UnconfirmedMessages.remove(0);
-        } else if (message.contains(MessageSendFailKey)){
-            TransferLatestMessageToQueue();
-        }*/
+        ChatQueueClient.LOGGER.info("Queue Size: " + PREFIXED_QUEUES.get(prefix).size());
     }
 
-    @Override
-    public void onReceiveChatMessage(Text message, @Nullable SignedMessage signedMessage, @Nullable GameProfile sender, MessageType.Parameters params, Instant receptionTimestamp) {
-        sendDebugMessage("Recieved chat message!");
-        /*if(message.contains(Text.literal(UnconfirmedMessages.get(0)))) {
-            UnconfirmedMessages.remove(0);
-        }*/
-    }
-
-    @Override
-    public void onSendChatMessage(String message) {
-        sendDebugMessage("Sent chat message!");
-        /*if(!SkipNextSentMessage && isModEnabledOnServer()) {
-            if(UnconfirmedMessages.isEmpty() || QueuedMessages.isEmpty()) {
-                OldestQueuedMessageSentTimeMillis = System.currentTimeMillis();
-            }
-            UnconfirmedMessages.add(message);
-        }
-        SkipNextSentMessage = false;*/
-    }
-
-    public static boolean sendNextQueuedMessage(MinecraftClient client) {
-        if(client.player != null && !QueuedMessages.isEmpty()) {
-            client.player.networkHandler.sendChatMessage(QueuedMessages.get(0));
-            return true;
-        }
-        return false;
-    }
-
-    public static boolean hasCoolDownExpired() {
-        return (System.currentTimeMillis() - OldestQueuedMessageSentTimeMillis) >= MessageDelayMillis;
-    }
-
-    public static void TransferLatestMessageToQueue() {
-        QueuedMessages.add(UnconfirmedMessages.remove(0));
-    }
-
-    public static ArrayList<String> getUnconfirmedMessages() {
-        return UnconfirmedMessages;
-    }
-
-    public static ArrayList<String> getQueuedMessages() {
-        return QueuedMessages;
-    }
-
+    /*
     public static boolean isModEnabledOnServer() {
         final ClientPlayNetworkHandler network = MinecraftClient.getInstance().getNetworkHandler();
         if(network == null || network.getServerInfo() == null) return false;
@@ -91,15 +60,12 @@ public class ChatQueueCore implements ClientTickEvents.StartTick, ClientSendMess
         final String address = network.getServerInfo().address;
         return address.endsWith("hoplite.gg") || address.contains(".hoplite");
     }
+    */
 
-    @Override
-    public void onStartTick(MinecraftClient client) {
-        if(hasCoolDownExpired() && client.getNetworkHandler() != null) {
-            sendNextQueuedMessage(client);
-        }
-    }
+    public static boolean isPrefixedQueueOnCooldown(String prefix) {
+        // oopsy haha
+        if (QUEUE_LAST_SENT_TIMES.get(prefix) == null || QUEUE_DELAYS.get(prefix) == null) return false;
 
-    private static void sendDebugMessage(String message) {
-        MinecraftClient.getInstance().player.sendMessage(Text.literal(message));
+        return (System.currentTimeMillis() - QUEUE_LAST_SENT_TIMES.get(prefix)) < QUEUE_DELAYS.get(prefix);
     }
 }
