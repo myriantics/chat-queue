@@ -17,13 +17,11 @@ public class CQChatCommandSendEvent {
         if (ChatQueueCore.isPrefixedQueueOnCooldown(commandPrefix)) {
             // add message to proper queue
             ChatQueueCore.addEntryToPrefixedQueue(commandPrefix, "/" + rawSentCommand);
-            ChatQueueClient.LOGGER.info("Added prefixed message to '" + commandPrefix + "' queue: /" + rawSentCommand);
 
             // we don't want this to go through if it's been added to the queue
             return false;
         }
 
-        ChatQueueClient.LOGGER.info("Successfully sent prefixed message: " + rawSentCommand);
         // Update last message sent time
         ChatQueueCore.updateLastSentTime(commandPrefix);
 
@@ -34,7 +32,6 @@ public class CQChatCommandSendEvent {
 
         for (String testPrefix : ChatQueueCore.VALID_MESSAGE_PREFIXES) {
             if (prefixMatches(rawSentCommand, testPrefix)) {
-                ChatQueueClient.LOGGER.info("Command matches prefix: " + testPrefix);
                 return testPrefix;
             }
         }

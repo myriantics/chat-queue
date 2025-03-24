@@ -27,7 +27,9 @@ public class ChatQueueCore {
     public static HashMap<String, Long> QUEUE_LAST_SENT_TIMES = new HashMap<>();
 
     public static void clearAllQueues() {
-        PREFIXED_QUEUES.clear();
+        for (ArrayList<String> queue : PREFIXED_QUEUES.values()) {
+            queue.clear();
+        }
     }
 
     public static void updateLastSentTime(String prefix) {
@@ -39,7 +41,6 @@ public class ChatQueueCore {
     }
 
     public static void addEntryToPrefixedQueue(String prefix, String message) {
-        ChatQueueClient.LOGGER.info("Added message to queue! " + message);
         PREFIXED_QUEUES.get(prefix).add(message);
     }
 
@@ -50,6 +51,10 @@ public class ChatQueueCore {
             handler.sendChatCommand(PREFIXED_QUEUES.get(prefix).remove(0));
         }
         ChatQueueClient.LOGGER.info("Queue Size: " + PREFIXED_QUEUES.get(prefix).size());
+    }
+
+    public static ArrayList<String> getPrefixedQueue(String prefix) {
+        return PREFIXED_QUEUES.get(prefix);
     }
 
     /*

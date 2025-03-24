@@ -2,9 +2,11 @@ package net.myriantics.chat_queue;
 
 import net.fabricmc.api.ClientModInitializer;
 
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.myriantics.chat_queue.command.CQCommands;
 import net.myriantics.chat_queue.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ public class ChatQueueClient implements ClientModInitializer {
 		ClientTickEvents.START_CLIENT_TICK.register(new CQStartClientTickEvent());
 		ClientPlayConnectionEvents.JOIN.register(new CQServerJoinEvent());
 		ClientPlayConnectionEvents.DISCONNECT.register(new CQServerDisconnectEvent());
-
+		ClientCommandRegistrationCallback.EVENT.register(new CQCommands());
 
 		LOGGER.info("ChatQueue has initialized!");
 	}

@@ -10,13 +10,10 @@ public class CQChatMessageSendEvent {
     public static boolean allowSendChatMessage(String message) {
         // only cancel and send message to queue if queue list is not empty
         if (ChatQueueCore.isPrefixedQueueOnCooldown(ChatQueueCore.RAW_CHAT_MESSAGE_PREFIX)) {
-            ChatQueueClient.LOGGER.info("Added message to base queue: " + message);
             ChatQueueCore.addEntryToBaseQueue(message);
 
             return false;
         }
-
-        ChatQueueClient.LOGGER.info("Successfully sent message: " + message);
 
         // update last message sent time
         ChatQueueCore.updateLastSentTime(ChatQueueCore.RAW_CHAT_MESSAGE_PREFIX);
