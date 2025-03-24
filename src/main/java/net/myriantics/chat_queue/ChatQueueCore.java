@@ -26,10 +26,17 @@ public class ChatQueueCore {
 
     public static HashMap<String, Long> QUEUE_LAST_SENT_TIMES = new HashMap<>();
 
-    public static void clearAllQueues() {
+    public static int clearAllQueues() {
+        int clearedQueuesAmount = 0;
+        // don't clear the map because it causes a crash - clear all values instead
         for (ArrayList<String> queue : PREFIXED_QUEUES.values()) {
-            queue.clear();
+            if (!queue.isEmpty()) {
+                // update tracking variable - used in command feedback
+                clearedQueuesAmount++;
+                queue.clear();
+            }
         }
+        return clearedQueuesAmount;
     }
 
     public static void updateLastSentTime(String prefix) {
@@ -51,6 +58,14 @@ public class ChatQueueCore {
             handler.sendChatCommand(PREFIXED_QUEUES.get(prefix).remove(0));
         }
         ChatQueueClient.LOGGER.info("Queue Size: " + PREFIXED_QUEUES.get(prefix).size());
+    }
+
+    public static int clearSpecificPrefixedQueue(String prefix) {
+        int size = PREFIXED_QUEUES.get(prefix).size();
+        PREFIXED_QUEUES.get(prefix).clear();
+        ChatQueueClient.LOGGER.info("Cleared prefixed queue " + (prefix.isEmpty() ? "raw_chat" : prefix));
+        // Size is used in command feedback
+        return size;
     }
 
     public static ArrayList<String> getPrefixedQueue(String prefix) {
