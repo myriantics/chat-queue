@@ -3,6 +3,10 @@
   "commands.clear_specific_queue.success.raw_chat": "Cleared raw chat queue of %s messages.",
   "commands.clear_specific_queue.fail.empty": "Failed to clear queue with command prefix \"%s\" due to it being empty.",
   "commands.clear_specific_queue.fail.missing": "No such chat queue \"%s\".",
+  "commands.get_specific_queue_contents.success.prefix": "Displaying the next %s messages from queue \"%s\".",
+  "commands.get_specific_queue_contents.success.raw_chat": "Displaying the next %s messages from raw chat queue.",
+  "commands.get_specific_queue_contents.fail.empty": "Failed to get contents of queue with command prefix \"%s\" due to it being empty.",
+  "commands.get_specific_queue_contents.fail.missing": "No such chat queue \"%s\".",
   "commands.clear_all_queues.success": "Cleared all chat queues - %s total queues cleared.",
   "commands.clear_all_queues.fail": "Failed to clear all chat queues - all chat queues were empty."
 }

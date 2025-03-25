@@ -21,11 +21,11 @@ public class ClearAllQueuesCommand {
                             int clearedQueuesAmount = ChatQueueCore.clearAllQueues();
 
                             if (clearedQueuesAmount > 0) {
-                                CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_all_queues.success", clearedQueuesAmount));
+                                context.getSource().sendFeedback(Text.translatable("commands.clear_all_queues.success", clearedQueuesAmount));
                                 return 1;
                             }
 
-                            CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_all_queues.fail"));
+                            context.getSource().sendError(Text.translatable("commands.clear_all_queues.fail"));
                             return 0;
                         })
         );

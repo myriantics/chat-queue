@@ -8,6 +8,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.text.Text;
 import net.myriantics.chat_queue.command.commands.ClearAllQueuesCommand;
 import net.myriantics.chat_queue.command.commands.ClearSpecificQueueCommand;
+import net.myriantics.chat_queue.command.commands.GetSpecificQueueContentsCommand;
 
 public class CQCommands implements ClientCommandRegistrationCallback{
 
@@ -15,9 +16,6 @@ public class CQCommands implements ClientCommandRegistrationCallback{
     public void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess registryAccess) {
         ClearAllQueuesCommand.register(dispatcher);
         ClearSpecificQueueCommand.register(dispatcher);
-    }
-
-    public static void sendClientChatMessage(MinecraftClient client, Text message) {
-        client.inGameHud.getChatHud().addMessage(message);
+        GetSpecificQueueContentsCommand.register(dispatcher);
     }
 }

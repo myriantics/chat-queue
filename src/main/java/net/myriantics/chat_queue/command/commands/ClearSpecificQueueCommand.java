@@ -26,13 +26,13 @@ public class ClearSpecificQueueCommand {
 
                                      // if there's no queue corresponding to string, then fail command
                                      if (selectedQueue == null) {
-                                         CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_specific_queue.fail.missing", targetQueuePrefix));
+                                         context.getSource().sendError(Text.translatable("commands.clear_specific_queue.fail.missing", targetQueuePrefix));
                                          return 0;
                                      }
 
                                      // if the selected queue is empty, fail
                                      if (selectedQueue.isEmpty()) {
-                                         CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_specific_queue.fail.empty", specifiedQueueParameter));
+                                         context.getSource().sendError(Text.translatable("commands.clear_specific_queue.fail.empty", specifiedQueueParameter));
                                          return 0;
                                      }
 
@@ -41,9 +41,9 @@ public class ClearSpecificQueueCommand {
 
                                      // send corresponding chat message
                                      if (targetQueuePrefix.isEmpty()) {
-                                         CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_specific_queue.success.raw_chat", clearedMessages));
+                                         context.getSource().sendFeedback(Text.translatable("commands.clear_specific_queue.success.raw_chat", clearedMessages));
                                      } else {
-                                         CQCommands.sendClientChatMessage(MinecraftClient.getInstance(), Text.translatable("commands.clear_specific_queue.success.prefix", targetQueuePrefix, clearedMessages));
+                                         context.getSource().sendFeedback(Text.translatable("commands.clear_specific_queue.success.prefix", targetQueuePrefix, clearedMessages));
                                      }
 
                                      return 1;
