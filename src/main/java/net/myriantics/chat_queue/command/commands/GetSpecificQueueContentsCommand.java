@@ -37,20 +37,20 @@ public class GetSpecificQueueContentsCommand {
                                     }
 
 
-                                    // clear messages in target queue and note down number of cleared messages
+                                    // yoink the number of messages to fetch
                                     // can only display last 10 messages
-                                    int clearedMessages = Math.min(selectedQueue.size(), 10);
+                                    int fetchedMessages = Math.min(selectedQueue.size(), 10);
 
                                     // send corresponding chat message
                                     if (targetQueuePrefix.isEmpty()) {
-                                        context.getSource().sendFeedback(Text.translatable("commands.get_specific_queue_contents.success.raw_chat", clearedMessages));
+                                        context.getSource().sendFeedback(Text.translatable("commands.get_specific_queue_contents.success.raw_chat", fetchedMessages));
                                     } else {
-                                        context.getSource().sendFeedback(Text.translatable("commands.get_specific_queue_contents.success.prefix", clearedMessages, targetQueuePrefix));
+                                        context.getSource().sendFeedback(Text.translatable("commands.get_specific_queue_contents.success.prefix", fetchedMessages, targetQueuePrefix));
                                     }
 
                                     // dump all queued messages into chat
                                     // only display in bursts of 10 - also don't exceed selected queue's size
-                                    for (int i = 0; i < 10 || i >= selectedQueue.size(); i++) {
+                                    for (int i = 0; i < fetchedMessages; i++) {
                                         String queuedMessage = selectedQueue.get(i);
                                         context.getSource().sendFeedback(Text.literal(queuedMessage));
                                     }
