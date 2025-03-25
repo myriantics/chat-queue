@@ -1,36 +1,21 @@
 package net.myriantics.chat_queue;
 
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.myriantics.chat_queue.api.PrefixedChatQueue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ChatQueueCore {
 
-    public static HashMap<String, ArrayList<String>> PREFIXED_QUEUES = new HashMap<>();
+    private static final HashMap<String,  PrefixedChatQueue> PREFIXED_CHAT_QUEUES = new HashMap<>();
 
-    public static String RAW_CHAT_MESSAGE_PREFIX = "";
-
-    public static final String[] VALID_MESSAGE_PREFIXES = {
-            "shout",
-            "pc"
-    };
-
-    // time is stored in milliseconds
-    public static final Map<String, Long> QUEUE_DELAYS = Map.of(
-            RAW_CHAT_MESSAGE_PREFIX, 3000L,
-            VALID_MESSAGE_PREFIXES[0], 60000L,
-            VALID_MESSAGE_PREFIXES[1], 1000L
-    );
-
-    public static HashMap<String, Long> QUEUE_LAST_SENT_TIMES = new HashMap<>();
+    public static final String RAW_CHAT_MESSAGE_PREFIX = "";
 
     public static int clearAllQueues() {
         int clearedQueuesAmount = 0;
         // don't clear the map because it causes a crash - clear all values instead
-        for (ArrayList<String> queue : PREFIXED_QUEUES.values()) {
-            if (!queue.isEmpty()) {
+        for (PrefixedChatQueue queue : PREFIXED_CHAT_QUEUES.values()) {
+            if (queue.hasEntries()) {
                 // update tracking variable - used in command feedback
                 clearedQueuesAmount++;
                 queue.clear();
@@ -39,37 +24,34 @@ public class ChatQueueCore {
         return clearedQueuesAmount;
     }
 
-    public static void updateLastSentTime(String prefix) {
-        QUEUE_LAST_SENT_TIMES.put(prefix, System.currentTimeMillis());
-    }
-
-    public static void addEntryToBaseQueue(String message) {
-        addEntryToPrefixedQueue(RAW_CHAT_MESSAGE_PREFIX, message);
-    }
-
-    public static void addEntryToPrefixedQueue(String prefix, String message) {
-        PREFIXED_QUEUES.get(prefix).add(message);
-    }
-
-    public static void sendNextQueuedMessage(String prefix, ClientPlayNetworkHandler handler) {
-        if (prefix.isEmpty()) {
-            handler.sendChatMessage(PREFIXED_QUEUES.get(prefix).remove(0));
-        } else {
-            handler.sendChatCommand(PREFIXED_QUEUES.get(prefix).remove(0));
-        }
-        ChatQueueClient.LOGGER.info("Queue Size: " + PREFIXED_QUEUES.get(prefix).size());
-    }
-
     public static int clearSpecificPrefixedQueue(String prefix) {
-        int size = PREFIXED_QUEUES.get(prefix).size();
-        PREFIXED_QUEUES.get(prefix).clear();
+        PrefixedChatQueue queue = getPrefixedQueue(prefix);
+
+        // null protection go brrrt
+        if (queue == null) return 0;
+
+        int size = queue.size();
+        queue.clear();
         ChatQueueClient.LOGGER.info("Cleared prefixed queue " + (prefix.isEmpty() ? "raw_chat" : prefix));
         // Size is used in command feedback
         return size;
     }
 
-    public static ArrayList<String> getPrefixedQueue(String prefix) {
-        return PREFIXED_QUEUES.get(prefix);
+    public static List<String> getValidCommandPrefixes() {
+        // "" is omitted here because it causes problems if it's not
+        return List.copyOf(PREFIXED_CHAT_QUEUES.keySet().stream().filter((prefix) -> !prefix.equals(RAW_CHAT_MESSAGE_PREFIX)).toList());
+    }
+
+    public static PrefixedChatQueue getPrefixedQueue(String commandPrefix) {
+        return PREFIXED_CHAT_QUEUES.get(commandPrefix);
+    }
+
+    public static void registerChatQueue(String commandPrefix, PrefixedChatQueue queue) {
+        PREFIXED_CHAT_QUEUES.put(commandPrefix, queue);
+    }
+
+    public static List<PrefixedChatQueue> getActiveChatQueues() {
+        return List.copyOf(PREFIXED_CHAT_QUEUES.values());
     }
 
     /*
@@ -81,11 +63,4 @@ public class ChatQueueCore {
         return address.endsWith("hoplite.gg") || address.contains(".hoplite");
     }
     */
-
-    public static boolean isPrefixedQueueOnCooldown(String prefix) {
-        // oopsy haha
-        if (QUEUE_LAST_SENT_TIMES.get(prefix) == null || QUEUE_DELAYS.get(prefix) == null) return false;
-
-        return (System.currentTimeMillis() - QUEUE_LAST_SENT_TIMES.get(prefix)) < QUEUE_DELAYS.get(prefix);
-    }
 }

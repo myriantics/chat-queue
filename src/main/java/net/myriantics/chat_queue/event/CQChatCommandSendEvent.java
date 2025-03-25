@@ -2,37 +2,38 @@ package net.myriantics.chat_queue.event;
 
 import net.myriantics.chat_queue.ChatQueueClient;
 import net.myriantics.chat_queue.ChatQueueCore;
+import net.myriantics.chat_queue.api.PrefixedChatQueue;
 import org.jetbrains.annotations.Nullable;
 
 public class CQChatCommandSendEvent {
 
     public static boolean allowSendCommandMessage(String rawSentCommand) {
-        String commandPrefix = getCommandPrefix(rawSentCommand);
+        PrefixedChatQueue queue = getCommandPrefix(rawSentCommand);
 
         // if the prefix isn't recognized, we don't care about the command
-        if (commandPrefix == null) return true;
+        if (queue == null) return true;
 
         // if there's no valid command prefix, we don't need to do any more CQ processing
         // also check to see if prefix is on cooldown
-        if (ChatQueueCore.isPrefixedQueueOnCooldown(commandPrefix)) {
+        if (queue.isOnCooldown()) {
             // add message to proper queue
-            ChatQueueCore.addEntryToPrefixedQueue(commandPrefix, "/" + rawSentCommand);
+            queue.add("/" + rawSentCommand);
 
             // we don't want this to go through if it's been added to the queue
             return false;
         }
 
         // Update last message sent time
-        ChatQueueCore.updateLastSentTime(commandPrefix);
+        queue.updateLastSentTime();
 
         return true;
     }
 
-    public static @Nullable String getCommandPrefix(String rawSentCommand) {
+    public static @Nullable PrefixedChatQueue getCommandPrefix(String rawSentCommand) {
 
-        for (String testPrefix : ChatQueueCore.VALID_MESSAGE_PREFIXES) {
+        for (String testPrefix : ChatQueueCore.getValidCommandPrefixes()) {
             if (prefixMatches(rawSentCommand, testPrefix)) {
-                return testPrefix;
+                return ChatQueueCore.getPrefixedQueue(testPrefix);
             }
         }
 
