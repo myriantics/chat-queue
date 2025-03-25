@@ -16,7 +16,7 @@ public class GetSpecificQueueContentsCommand {
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         dispatcher.register(
                 ClientCommandManager.literal("getqueuecontents")
-                        .then(ClientCommandManager.argument("target_queue_command_prefix", StringArgumentType.string()))
+                        .then(ClientCommandManager.argument("target_queue_command_prefix", StringArgumentType.string())
                                 .executes(context -> {
                                     String specifiedQueueParameter = StringArgumentType.getString(context, "target_queue_command_prefix");
 
@@ -26,7 +26,7 @@ public class GetSpecificQueueContentsCommand {
 
                                     // if there's no queue corresponding to string, then fail command
                                     if (selectedQueue == null) {
-                                        context.getSource().sendError(Text.translatable("commands.get_specific_queue_contents.fail.missing"));
+                                        context.getSource().sendError(Text.translatable("commands.get_specific_queue_contents.fail.missing", specifiedQueueParameter));
                                         return 0;
                                     }
 
@@ -57,7 +57,7 @@ public class GetSpecificQueueContentsCommand {
 
                                     return 1;
                                 })
-        );
+        ));
     }
 
 }
