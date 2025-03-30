@@ -8,5 +8,22 @@
   "commands.get_specific_queue_contents.fail.empty": "Failed to get contents of queue with command prefix \"%s\" due to it being empty.",
   "commands.get_specific_queue_contents.fail.missing": "No such chat queue \"%s\".",
   "commands.clear_all_queues.success": "Cleared all chat queues - %s total queues cleared.",
-  "commands.clear_all_queues.fail": "Failed to clear all chat queues - all chat queues were empty."
+  "commands.clear_all_queues.fail": "Failed to clear all chat queues - all chat queues were empty.",
+
+  "chat_queue.title": "ChatQueue",
+  "chat_queue.general.category": "ChatQueue General Settings",
+  "chat_queue.queues.category": "ChatQueue Queue Settings",
+  "chat_queue.general.mod_enabled": "Mod Enabled Toggle",
+  "chat_queue.general.mod_paused": "Mod Paused",
+
+  "chat_queue.queues.settings.global": "ChatQueue Global Settings",
+  "chat_queue.queues.settings.global.description": "Settings applied across all worlds and servers - are overridden by server-specific configs",
+  "chat_queue.queues.settings.global.button": "Global Queue Settings",
+  "chat_queue.queues.settings.global.button.description": "Open config screen",
+
+  "chat_queue.specific_queue.settings": "Specific Queue Settings",
+
+  "chat_queue.per_server.category": "ChatQueue Per-Server Settings",
+  "chat_queue.per_server.list": "Per-Server Settings List",
+  "chat_queue.per_server.list.description": "Settings for individual servers"
 }

@@ -2,14 +2,14 @@
 	"schemaVersion": 1,
 	"id": "chat_queue",
 	"version": "${version}",
-	"name": "chat-queue",
-	"description": "Now you don't have to retype messages when they get blocked by lack of a rank",
+	"name": "ChatQueue",
+	"description": "Clientside counter to serverside slowmodes",
 	"authors": [
 		"Myriantics"
 	],
 	"contact": {
-		"homepage": "https://reddit.com/r/feedthememes",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/chat_queue",
+		"sources": "https://github.com/myriantics/chat-queue"
 	},
 	"license": "MIT",
 	"icon": "assets/chat_queue/icon.png",
@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"client": [
 			"net.myriantics.chat_queue.ChatQueueClient"
+		],
+		"modmenu": [
+			"net.myriantics.chat_queue.compat.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -30,6 +33,6 @@
 		"yet_another_config_lib_v3": ">=3.6.1+1.20.1-fabric"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"modmenu": "*"
 	}
 }

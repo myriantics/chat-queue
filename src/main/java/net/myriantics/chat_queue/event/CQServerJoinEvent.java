@@ -9,7 +9,7 @@ import net.myriantics.chat_queue.api.PrefixedChatQueue;
 
 import java.util.ArrayList;
 
-public class CQServerJoinEvent implements ClientPlayConnectionEvents.Join{
+public class CQServerJoinEvent implements ClientPlayConnectionEvents.Join {
     @Override
     public void onPlayReady(ClientPlayNetworkHandler handler, PacketSender sender, MinecraftClient client) {
         // initialize queues
