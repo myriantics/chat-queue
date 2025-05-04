@@ -26,6 +26,11 @@ public class PrefixedChatQueue extends ArrayList<String> {
         return System.currentTimeMillis() - lastSentTimeMillis < queueDelayMillis;
     }
 
+    public long getTimeUntilNextSendMillis() {
+        long time = queueDelayMillis - (System.currentTimeMillis() - lastSentTimeMillis);
+        return Math.min(queueDelayMillis, Math.max(0, time));
+    }
+
     public void setPaused(boolean paused) {
         this.isPaused = paused;
     }
@@ -66,6 +71,13 @@ public class PrefixedChatQueue extends ArrayList<String> {
         } else {
             handler.sendChatCommand(this.remove(0));
         }
+
         ChatQueueClient.LOGGER.info("Queue Size: " + this.size());
+    }
+
+    @Override
+    public boolean add(String s) {
+        boolean success = super.add(s);
+        return success;
     }
 }

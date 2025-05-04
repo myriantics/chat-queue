@@ -18,6 +18,8 @@ public class CQChatMessageSendEvent {
         if (queue.isOnCooldown()) {
             queue.add(message);
 
+            ChatQueueCore.updatePrimedQueue();
+
             return false;
         }
 

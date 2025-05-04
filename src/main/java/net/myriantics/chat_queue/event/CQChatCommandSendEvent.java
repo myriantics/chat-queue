@@ -19,6 +19,8 @@ public class CQChatCommandSendEvent {
             // add message to proper queue
             queue.add("/" + rawSentCommand);
 
+            ChatQueueCore.updatePrimedQueue();
+
             // we don't want this to go through if it's been added to the queue
             return false;
         }

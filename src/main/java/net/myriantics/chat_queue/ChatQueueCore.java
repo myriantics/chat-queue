@@ -1,15 +1,16 @@
 package net.myriantics.chat_queue;
 
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.myriantics.chat_queue.api.PrefixedChatQueue;
 
 import java.util.*;
 
 public class ChatQueueCore {
 
-    private static final HashMap<String,  PrefixedChatQueue> PREFIXED_CHAT_QUEUES = new HashMap<>();
+    private static final HashMap<String, PrefixedChatQueue> PREFIXED_CHAT_QUEUES = new HashMap<>();
 
     public static final String RAW_CHAT_MESSAGE_PREFIX = "";
+
+    private static PrefixedChatQueue nextPrimedQueue;
 
     public static int clearAllQueues() {
         int clearedQueuesAmount = 0;
@@ -21,6 +22,7 @@ public class ChatQueueCore {
                 queue.clear();
             }
         }
+        updatePrimedQueue();
         return clearedQueuesAmount;
     }
 
@@ -33,6 +35,7 @@ public class ChatQueueCore {
         int size = queue.size();
         queue.clear();
         ChatQueueClient.LOGGER.info("Cleared prefixed queue " + (prefix.isEmpty() ? "raw_chat" : prefix));
+        updatePrimedQueue();
         // Size is used in command feedback
         return size;
     }
@@ -52,6 +55,37 @@ public class ChatQueueCore {
 
     public static List<PrefixedChatQueue> getActiveChatQueues() {
         return List.copyOf(PREFIXED_CHAT_QUEUES.values());
+    }
+
+    public static String getNextQueuedMessage() {
+        String nextQueuedMessage = null;
+
+        if (nextPrimedQueue == null) return null;
+
+        if (!nextPrimedQueue.isEmpty()) {
+            String commandPrefix = nextPrimedQueue.isRawChatQueue() ? "" : nextPrimedQueue.getCommandPrefix() + " ";
+            nextQueuedMessage = nextPrimedQueue.getTimeUntilNextSendMillis() + " " + commandPrefix + nextPrimedQueue.get(0);
+        }
+
+        return nextQueuedMessage;
+    }
+
+    public static void updatePrimedQueue() {
+        long lowestQueueDelayMillis = Long.MAX_VALUE;
+        PrefixedChatQueue selectedQueue = null;
+        for (PrefixedChatQueue queue : getActiveChatQueues()) {
+            if (queue.getTimeUntilNextSendMillis() < lowestQueueDelayMillis) {
+                lowestQueueDelayMillis = queue.getTimeUntilNextSendMillis();
+                selectedQueue = queue;
+            }
+        }
+
+        if (selectedQueue != null && !selectedQueue.isEmpty()) {
+            nextPrimedQueue = selectedQueue;
+        } else {
+            nextPrimedQueue = null;
+        }
+
     }
 
     /*

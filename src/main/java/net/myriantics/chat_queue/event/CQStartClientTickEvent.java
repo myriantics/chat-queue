@@ -19,6 +19,8 @@ public class CQStartClientTickEvent implements ClientTickEvents.StartTick{
                 // send the message / command - also removes message from list / map
                 queue.sendNextMessage(minecraftClient.player.networkHandler);
 
+                ChatQueueCore.updatePrimedQueue();
+
                 // update last sent time
                 queue.updateLastSentTime();
             }
