@@ -1,6 +1,7 @@
 package net.myriantics.chat_queue.api;
 
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.message.SentMessage;
 import net.myriantics.chat_queue.ChatQueueClient;
 import net.myriantics.chat_queue.ChatQueueCore;
 
@@ -23,12 +24,17 @@ public class PrefixedChatQueue extends ArrayList<String> {
         // only can be on cooldown if it's actually sent a message
         if (lastSentTimeMillis == -1) return false;
 
-        return System.currentTimeMillis() - lastSentTimeMillis < queueDelayMillis;
+        return ChatQueueCore.getCurrentTimeMillis() - lastSentTimeMillis < queueDelayMillis;
     }
 
     public long getTimeUntilNextSendMillis() {
-        long time = queueDelayMillis - (System.currentTimeMillis() - lastSentTimeMillis);
-        return Math.min(queueDelayMillis, Math.max(0, time));
+        long time = queueDelayMillis - (ChatQueueCore.getCurrentTimeMillis() - lastSentTimeMillis);
+        return time;
+    }
+
+    public boolean isTimeOutOfBounds() {
+        long time = getTimeUntilNextSendMillis();
+        return time <= 0 || time > queueDelayMillis;
     }
 
     public void setPaused(boolean paused) {
@@ -41,12 +47,6 @@ public class PrefixedChatQueue extends ArrayList<String> {
 
     public boolean hasEntries() {
         return !this.isEmpty();
-    }
-
-    public void clear() {
-        super.clear();
-        // unpauses itself after it's cleared because that seems apt
-        this.setPaused(false);
     }
 
     public String getCommandPrefix() {
@@ -71,13 +71,45 @@ public class PrefixedChatQueue extends ArrayList<String> {
         } else {
             handler.sendChatCommand(this.remove(0));
         }
+    }
 
-        ChatQueueClient.LOGGER.info("Queue Size: " + this.size());
+    @Override
+    public void clear() {
+        super.clear();
+        // reset last sent time
+        lastSentTimeMillis = -1;
+        // unpauses itself after it's cleared because that seems apt
+        //
+        ChatQueueCore.updatePrimedQueue(null);
+        this.setPaused(false);
+    }
+
+    @Override
+    public String remove(int index) {
+        String success = super.remove(index);
+
+        // update last sent time
+        this.updateLastSentTime();
+
+        ChatQueueCore.updatePrimedQueue(null);
+        return success;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        boolean success = super.remove(o);
+
+        // update last sent time
+        this.updateLastSentTime();
+
+        ChatQueueCore.updatePrimedQueue(null);
+        return success;
     }
 
     @Override
     public boolean add(String s) {
         boolean success = super.add(s);
+        ChatQueueCore.updatePrimedQueue(null);
         return success;
     }
 }

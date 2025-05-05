@@ -11,6 +11,8 @@ public class CQStartClientTickEvent implements ClientTickEvents.StartTick{
         // silence, IDE warnings
         if (minecraftClient.player == null) return;
 
+        ChatQueueCore.updateCurrentTimeMillis();
+
         for (PrefixedChatQueue queue : ChatQueueCore.getActiveChatQueues()) {
 
             // only process this if selected queue is not on cooldown & selected queue has entries
@@ -18,13 +20,9 @@ public class CQStartClientTickEvent implements ClientTickEvents.StartTick{
 
                 // send the message / command - also removes message from list / map
                 queue.sendNextMessage(minecraftClient.player.networkHandler);
-
-                ChatQueueCore.updatePrimedQueue();
-
-                // update last sent time
-                queue.updateLastSentTime();
             }
         }
+
     }
 
 }

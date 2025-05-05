@@ -1,6 +1,8 @@
 package net.myriantics.chat_queue;
 
+import net.minecraft.client.MinecraftClient;
 import net.myriantics.chat_queue.api.PrefixedChatQueue;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -12,6 +14,8 @@ public class ChatQueueCore {
 
     private static PrefixedChatQueue nextPrimedQueue;
 
+    private static long currentTimeMillis;
+
     public static int clearAllQueues() {
         int clearedQueuesAmount = 0;
         // don't clear the map because it causes a crash - clear all values instead
@@ -22,7 +26,6 @@ public class ChatQueueCore {
                 queue.clear();
             }
         }
-        updatePrimedQueue();
         return clearedQueuesAmount;
     }
 
@@ -35,7 +38,6 @@ public class ChatQueueCore {
         int size = queue.size();
         queue.clear();
         ChatQueueClient.LOGGER.info("Cleared prefixed queue " + (prefix.isEmpty() ? "raw_chat" : prefix));
-        updatePrimedQueue();
         // Size is used in command feedback
         return size;
     }
@@ -60,32 +62,35 @@ public class ChatQueueCore {
     public static String getNextQueuedMessage() {
         String nextQueuedMessage = null;
 
-        if (nextPrimedQueue == null) return null;
-
-        if (!nextPrimedQueue.isEmpty()) {
-            String commandPrefix = nextPrimedQueue.isRawChatQueue() ? "" : nextPrimedQueue.getCommandPrefix() + " ";
-            nextQueuedMessage = nextPrimedQueue.getTimeUntilNextSendMillis() + " " + commandPrefix + nextPrimedQueue.get(0);
+        if (nextPrimedQueue != null &&  !nextPrimedQueue.isEmpty()) {
+            nextQueuedMessage = nextPrimedQueue.getTimeUntilNextSendMillis() + " " + nextPrimedQueue.get(0);
         }
 
         return nextQueuedMessage;
     }
 
-    public static void updatePrimedQueue() {
+    public static void updatePrimedQueue(@Nullable PrefixedChatQueue ignored) {
         long lowestQueueDelayMillis = Long.MAX_VALUE;
-        PrefixedChatQueue selectedQueue = null;
+        PrefixedChatQueue selectedQueue = nextPrimedQueue;
         for (PrefixedChatQueue queue : getActiveChatQueues()) {
-            if (queue.getTimeUntilNextSendMillis() < lowestQueueDelayMillis) {
+            if (queue.equals(ignored)) continue;
+
+            if (!queue.isEmpty() && !queue.isTimeOutOfBounds() && queue.getTimeUntilNextSendMillis() < lowestQueueDelayMillis) {
                 lowestQueueDelayMillis = queue.getTimeUntilNextSendMillis();
                 selectedQueue = queue;
             }
         }
 
-        if (selectedQueue != null && !selectedQueue.isEmpty()) {
-            nextPrimedQueue = selectedQueue;
-        } else {
-            nextPrimedQueue = null;
-        }
+        nextPrimedQueue = selectedQueue;
 
+    }
+
+    public static long getCurrentTimeMillis() {
+        return currentTimeMillis;
+    }
+
+    public static void updateCurrentTimeMillis() {
+        currentTimeMillis = System.currentTimeMillis();
     }
 
     /*

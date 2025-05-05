@@ -17,9 +17,6 @@ public class CQChatMessageSendEvent {
         // only cancel and send message to queue if queue list is not empty
         if (queue.isOnCooldown()) {
             queue.add(message);
-
-            ChatQueueCore.updatePrimedQueue();
-
             return false;
         }
 
